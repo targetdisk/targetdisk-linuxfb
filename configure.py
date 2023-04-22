@@ -40,7 +40,7 @@ def main():
         + str(int(path.getsize(config["trident"]["pixmap"]) / 4))
         + "\n"
     )
-    data_header.write("uint32_t pixmap[] = {\n")
+    data_header.write("uint32_t trident_pixmap[] = {\n")
     for block in iter(
         lambda: [
             pixmap.read(4),

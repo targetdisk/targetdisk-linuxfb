@@ -86,11 +86,11 @@ void trident_test2(drawfren_t *df) {
     } else {
       x++;
     }
-    if (pixmap[pi] & 0x000000ff) {
+    if (trident_pixmap[pi] & 0x000000ff) {
       *((uint32_t*)(df->fbp + pixel_location(x, y, df)))
-        = pixel_color((pixmap[pi] >> 24),
-          ((pixmap[pi] & 0x00ff0000) >> 16),
-          ((pixmap[pi] & 0x0000ff00) >> 8),
+        = pixel_color((trident_pixmap[pi] >> 24),
+          ((trident_pixmap[pi] & 0x00ff0000) >> 16),
+          ((trident_pixmap[pi] & 0x0000ff00) >> 8),
           df);
     }
   }
