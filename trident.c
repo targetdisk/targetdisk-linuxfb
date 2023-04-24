@@ -97,7 +97,6 @@ void rle_decompress(pixmap_t *pixmap) {
   uint32_t *pixel;
   for (size_t pi = 0; pi < pixmap->n_pixels; rledata++) {
     pixel = rledata++;
-    printf("pixel = %#08x, repetitions = %#08x\n", *pixel, *rledata);
     for (uint32_t pi_end = pi + *rledata; pi < pi_end; pi++) {
       *rawdata++ = *pixel;
     }
