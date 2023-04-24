@@ -2,7 +2,7 @@
  *  2023 Andrew "targetdisk" Rogers
  *
  *  Compile with:
- *    gcc -g -O0 -o fbtest fbtest.c
+ *    gcc -Wall -g -O0 -o trident trident.c
  */
 
 #include <fcntl.h>
@@ -10,32 +10,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include "img_data.h"
-
-typedef struct struct_fren {
-  int fb_fd;
-  struct fb_fix_screeninfo finfo;
-  struct fb_var_screeninfo vinfo;
-  long screensize;
-  uint8_t *fbp;
-} drawfren_t;
-
-#define GET_VINFO(fren) {                                  \
-  ioctl(fren->fb_fd, FBIOGET_VSCREENINFO, &fren->vinfo);   \
-}
-
-#define GET_FINFO(fren) {                                  \
-  ioctl(fren->fb_fd, FBIOGET_FSCREENINFO, &fren->finfo);   \
-}
-
-#define GET_INFOS(fren)  {  \
-  GET_VINFO(fren);          \
-  GET_FINFO(fren);          \
-}
+#include "trident.h"
 
 void setup_fren(drawfren_t *fren) {
   fren->fb_fd = open("/dev/fb0", O_RDWR);
@@ -75,23 +56,50 @@ static inline int bounded_rand(int lower, int upper) {
   return (rand() % (upper - lower + 1)) + lower;
 }
 
-void trident_test2(drawfren_t *df) {
-  long start_x = bounded_rand(0, df->vinfo.xres - PIXMAP_WIDTH);
+void draw_trident(drawfren_t *df, pixmap_t *pixmap) {
+  long start_x = bounded_rand(0, df->vinfo.xres - pixmap->width);
   long x = start_x;
-  long y = bounded_rand(0, df->vinfo.yres - PIXMAP_HEIGHT);
-  for (int pi = 0; pi < PIXMAP_PIXELS; pi++) {
-    if (pi % PIXMAP_WIDTH == 0) {
-      x = start_x;
-      y++;
-    } else {
-      x++;
+  long y = bounded_rand(0, df->vinfo.yres - pixmap->height);
+  {
+    uint32_t *data_ptr = pixmap->data;
+    for (size_t pi = 0; pi < pixmap->n_pixels; pi++) {
+      if (pi % pixmap->width == 0) {
+        x = start_x;
+        y++;
+      } else {
+        x++;
+      }
+      if (*data_ptr & 0x000000ff) {
+        *((uint32_t*)(df->fbp + pixel_location(x, y, df)))
+          = pixel_color((*data_ptr >> 24),
+            ((*data_ptr & 0x00ff0000) >> 16),
+            ((*data_ptr & 0x0000ff00) >> 8),
+            df);
+      }
+      data_ptr++;
     }
-    if (pixmap[pi] & 0x000000ff) {
-      *((uint32_t*)(df->fbp + pixel_location(x, y, df)))
-        = pixel_color((pixmap[pi] >> 24),
-          ((pixmap[pi] & 0x00ff0000) >> 16),
-          ((pixmap[pi] & 0x0000ff00) >> 8),
-          df);
+  }
+}
+
+void rle_decompress(pixmap_t *pixmap) {
+  switch (pixmap->datatype) {
+    case RAW:
+      return;
+    case RLE:
+      break;
+    default:
+      fprintf(stderr, "ERROR: image data type not implemented!!\n");
+      exit(1);
+  }
+  uint32_t *rledata = pixmap->data;
+  uint32_t *rawdata = malloc(sizeof(uint32_t) * pixmap->n_pixels);
+  pixmap->data = rawdata;
+  uint32_t *pixel;
+  for (size_t pi = 0; pi < pixmap->n_pixels; rledata++) {
+    pixel = rledata++;
+    printf("pixel = %#08x, repetitions = %#08x\n", *pixel, *rledata);
+    for (uint32_t pi_end = pi + *rledata; pi < pi_end; pi++) {
+      *rawdata++ = *pixel;
     }
   }
 }
@@ -105,10 +113,11 @@ int main(void) {
   drawfren_t fren;
   setup_fren(&fren);
   print_frenfo(&fren);
+  rle_decompress(&trident);
 
   for (int i = 0; i < 2048; i++) {
     fill_screen(pixel_color(BG_R, BG_G, BG_B, &fren), &fren);
-    trident_test2(&fren);
+    draw_trident(&fren, &trident);
     sleep(5);
   }
 

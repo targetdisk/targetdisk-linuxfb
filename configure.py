@@ -2,6 +2,9 @@
 
 import json as j
 from os import path
+from sys import stderr, exit
+
+imgtypes = [ "RAW", "RLE" ]
 
 
 def split_colors(color):
@@ -13,34 +16,29 @@ def split_colors(color):
     ]
 
 
-def main():
-    config = {}
-    with open(file="config.json", mode="r") as jfile:
-        config = j.load(jfile)
+def write_rledata(data_header, pixmap, img):
+    data_header.write("uint32_t " + img["name"] + "_rledata[] = {\n")
+    last_pixel = None
+    count = 0
+    for pixel in iter(lambda: pixmap.read(4), b""):
+        pixel = int.from_bytes(pixel, byteorder="big")
+        if pixel != last_pixel:
+            if last_pixel is not None:
+                data_header.write("0x{:08x},\n".format(count))
+            count = 1
+            data_header.write("  0x{:08x},".format(pixel))
+            last_pixel = pixel
+        elif pixel == last_pixel:
+            count += 1
+            if count == 0xffffffff:
+                data_header.write("0x{:08x},\n".format(count))
+                count = 0
+                pixel = None
+    data_header.write("0x{:08x},\n".format(count) + "};\n")
 
-    config["bg_color"] = split_colors(config["bg_color"])
-    print(config)
 
-    pixmap = open(file=config["trident"]["pixmap"], mode="rb")
-    data_header = open(file="img_data.h", mode="w")
-
-    data_header.write("#ifndef IMG_DATA_H\n#define IMG_DATA_H\n")
-    data_header.write("#define BG_R  " + config["bg_color"][0] + "\n")
-    data_header.write("#define BG_G  " + config["bg_color"][1] + "\n")
-    data_header.write("#define BG_B  " + config["bg_color"][2] + "\n")
-
-    data_header.write(
-        "#define PIXMAP_WIDTH  " + str(config["trident"]["dimens"][0]) + "\n"
-    )
-    data_header.write(
-        "#define PIXMAP_HEIGHT  " + str(config["trident"]["dimens"][1]) + "\n"
-    )
-    data_header.write(
-        "#define PIXMAP_PIXELS  "
-        + str(int(path.getsize(config["trident"]["pixmap"]) / 4))
-        + "\n"
-    )
-    data_header.write("uint32_t pixmap[] = {\n")
+def write_rawdata(data_header, pixmap, img):
+    data_header.write("uint32_t " + img["name"] + "_rawdata[] = {\n")
     for block in iter(
         lambda: [
             pixmap.read(4),
@@ -56,6 +54,45 @@ def main():
             "  " + ",".join(map("0x{:08x}".format, block)) + ",\n"
         )
     data_header.write("};\n")
+
+
+def main():
+    config = {}
+    with open(file="config.json", mode="r") as jfile:
+        config = j.load(jfile)
+
+    config["bg_color"] = split_colors(config["bg_color"])
+    print(config)
+
+    data_header = open(file="img_data.h", mode="w")
+    data_header.write("#ifndef IMG_DATA_H\n#define IMG_DATA_H\n")
+    data_header.write("#include \"trident.h\"\n")
+    data_header.write("#define BG_R  " + config["bg_color"][0] + "\n")
+    data_header.write("#define BG_G  " + config["bg_color"][1] + "\n")
+    data_header.write("#define BG_B  " + config["bg_color"][2] + "\n")
+
+    for img in config["gfx"]:
+        pixmap = open(file=img["pixmap"], mode="rb")
+
+        if (img["type"] == 0):
+            write_rawdata(data_header, pixmap, img)
+            datavar = "  .data = " + img["name"] + "_rawdata\n"
+        elif (img["type"] == 1):
+            write_rledata(data_header, pixmap, img)
+            datavar = "  .data = " + img["name"] + "_rledata\n"
+        else:
+            print("ERROR: image data type not implemented!!", file=stderr)
+            pixmap.close()
+            data_header.close()
+
+        data_header.write(
+            "pixmap_t " + img["name"] + " = {\n"
+            + "  .width = " + str(img["dimens"][0]) + ",\n"
+            + "  .height = " + str(img["dimens"][1]) + ",\n"
+            + "  .n_pixels = " + str(int(path.getsize(img["pixmap"]) / 4)) + ",\n"
+            + "  .datatype = " + imgtypes[img["type"]] + ",\n"
+            + datavar + "};\n"
+        )
 
     data_header.write("#endif /* IMG_DATA_H */\n")
 
