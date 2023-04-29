@@ -93,13 +93,18 @@ void rle_decompress(pixmap_t *pixmap) {
   }
   uint32_t *rledata = pixmap->data;
   uint32_t *rawdata = malloc(sizeof(uint32_t) * pixmap->n_pixels);
-  pixmap->data = rawdata;
-  uint32_t *pixel;
-  for (size_t pi = 0; pi < pixmap->n_pixels; rledata++) {
-    pixel = rledata++;
-    for (uint32_t pi_end = pi + *rledata; pi < pi_end; pi++) {
-      *rawdata++ = *pixel;
+  if (rawdata) {
+    pixmap->data = rawdata;
+    uint32_t *pixel;
+    for (size_t pi = 0; pi < pixmap->n_pixels; rledata++) {
+      pixel = rledata++;
+      for (uint32_t pi_end = pi + *rledata; pi < pi_end; pi++) {
+        *rawdata++ = *pixel;
+      }
     }
+  } else {
+    fprintf(stderr, "ERROR: malloc failed on pixmap data!!\n");
+    exit(1);
   }
 }
 
