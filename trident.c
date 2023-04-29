@@ -5,6 +5,7 @@
  *    gcc -Wall -g -O0 -o trident trident.c
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <linux/fb.h>
 #include <stdint.h>
@@ -89,7 +90,7 @@ void rle_decompress(pixmap_t *pixmap) {
       break;
     default:
       fprintf(stderr, "ERROR: image data type not implemented!!\n");
-      exit(1);
+      exit(EPROTONOSUPPORT);
   }
   uint32_t *rledata = pixmap->data;
   uint32_t *rawdata = malloc(sizeof(uint32_t) * pixmap->n_pixels);
@@ -104,7 +105,7 @@ void rle_decompress(pixmap_t *pixmap) {
     }
   } else {
     fprintf(stderr, "ERROR: malloc failed on pixmap data!!\n");
-    exit(1);
+    exit(ENOMEM);
   }
 }
 
