@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <sys/ioctl.h>
 
-enum imgdata_type { RAW, RLE };
+enum imgdata_type { RAW, RLE, RLE1 };
 
 typedef struct drawfren_s {
   int fb_fd;

@@ -4,3 +4,8 @@ img_data.h
 crud
 tags
 README.html
+dist
+
+*.swo
+*.swn
+*.swp
