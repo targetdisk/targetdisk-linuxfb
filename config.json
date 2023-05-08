@@ -5,7 +5,8 @@
             "name": "trident",
             "dimens": [212, 474],
             "pixmap": "USB_icon_cropped.data",
-            "type": 1
+            "fgcolor": "ffe400",
+            "type": 2
         }
     ]
 }
