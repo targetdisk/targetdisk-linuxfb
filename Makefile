@@ -1,6 +1,7 @@
-UNAME=$(shell uname)
+UNAME = $(shell uname)
+STRIP ?= strip
 
-CFLAGS=-Wall
+CFLAGS ?= -Wall
 ifeq ($(UNAME),Linux)
 	OPEN=xdg-open
 endif
@@ -12,8 +13,11 @@ README: pub-css # Requires Pandoc to be installed
 	pandoc README.md -s -c pub.css -o README.html
 	$(OPEN) README.html
 
-trident:
-	$(CC) $(CFLAGS) -m32 trident.c -o trident
+trident: trident.c
+	$(CC) $(CFLAGS) -m32 -o $@ $<
+
+strip: trident
+	$(STRIP) $^
 
 clean:
 	rm trident
