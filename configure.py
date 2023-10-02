@@ -26,7 +26,7 @@ def write_rle1data(data_header, pixmap, img):
         packed[0] += byte
         packed[1] += 1
         if packed[1] == 4:
-            data_header.write("  0b{:032b},\n".format(packed[0]))
+            data_header.write("  0x{:08x},\n".format(packed[0]))
             packed = [0, 0]
         return packed
 
