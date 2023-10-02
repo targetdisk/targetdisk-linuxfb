@@ -1,5 +1,6 @@
 #ifndef TRIDENT_H
 #define TRIDENT_H
+#include <linux/fb.h>
 #include <stdint.h>
 #include <sys/ioctl.h>
 
