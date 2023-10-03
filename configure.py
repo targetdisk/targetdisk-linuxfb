@@ -115,6 +115,13 @@ def main():
             write_rledata(data_header, pixmap, img)
             datavar = "  .data = " + img["name"] + "_rledata\n"
         elif img["type"] == 2:
+            if config["byte_order"] == "little":
+                img["fgcolor"] = (
+                    img["fgcolor"][-2:][:3]
+                    + img["fgcolor"][-4:-2][:3]
+                    + img["fgcolor"][:-4][:3]
+                )
+
             data_header.write(
                 "uint32_t "
                 + img["name"]
