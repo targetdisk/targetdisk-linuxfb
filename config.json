@@ -1,5 +1,7 @@
 {
     "bg_color": "616db8",
+    "byte_order": "big",
+
     "gfx": [
         {
             "name": "trident",

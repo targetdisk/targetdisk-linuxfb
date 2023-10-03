@@ -6,6 +6,10 @@ from sys import stderr, exit
 
 imgtypes = ["RAW", "RLE", "RLE1"]
 
+config = {}
+with open(file="config.json", mode="r") as jfile:
+    config = j.load(jfile)
+
 
 def split_colors(color):
     numcolor = int(color, 16)
@@ -31,7 +35,7 @@ def write_rle1data(data_header, pixmap, img):
         return packed
 
     for pixel in iter(lambda: pixmap.read(4), b""):
-        pixel = int.from_bytes(pixel, byteorder="big") & 1
+        pixel = int.from_bytes(pixel, byteorder=config["byte_order"]) & 1
         if pixel != last_pixel:
             if last_pixel is not None:
                 packed = pack((last_pixel << 7) + count, packed)
@@ -53,7 +57,7 @@ def write_rledata(data_header, pixmap, img):
     last_pixel = None
     count = 0
     for pixel in iter(lambda: pixmap.read(4), b""):
-        pixel = int.from_bytes(pixel, byteorder="big")
+        pixel = int.from_bytes(pixel, byteorder=config["byte_order"])
         if pixel != last_pixel:
             if last_pixel is not None:
                 data_header.write("0x{:08x},\n".format(count))
@@ -81,7 +85,9 @@ def write_rawdata(data_header, pixmap, img):
         [b"", b"", b"", b""],
     ):
         for px in range(len(block)):
-            block[px] = int.from_bytes(block[px], byteorder="big")
+            block[px] = int.from_bytes(
+                block[px], byteorder=config["byte_order"]
+            )
         data_header.write(
             "  " + ",".join(map("0x{:08x}".format, block)) + ",\n"
         )
@@ -89,10 +95,6 @@ def write_rawdata(data_header, pixmap, img):
 
 
 def main():
-    config = {}
-    with open(file="config.json", mode="r") as jfile:
-        config = j.load(jfile)
-
     config["bg_color"] = split_colors(config["bg_color"])
     print(config)
 
