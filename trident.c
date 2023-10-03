@@ -138,13 +138,16 @@ void rle1_decompress(pixmap_t *pixmap) {
 void decompress(pixmap_t *pixmap) {
   switch (pixmap->datatype) {
     case RAW:
+    case RAW_BL:
       return;
 #ifndef RLE1_ONLY
     case RLE:
+    case RLE_BL:
       rle_decompress(pixmap);
       return;
 #endif /* RLE1_ONLY */
     case RLE1:
+    case RLE1_BL:
       rle1_decompress(pixmap);
       return;
     default:

@@ -4,7 +4,7 @@ import json as j
 from os import path
 from sys import stderr, exit
 
-imgtypes = ["RAW", "RLE", "RLE1"]
+imgtypes = ["RAW", "RLE", "RLE1", "RAW_BL", "RLE_BL", "RLE1_BL"]
 
 config = {}
 with open(file="config.json", mode="r") as jfile:
@@ -108,13 +108,13 @@ def main():
     for img in config["gfx"]:
         pixmap = open(file=img["pixmap"], mode="rb")
 
-        if img["type"] == 0:
+        if img["type"] == 0 or img["type"] == 3:
             write_rawdata(data_header, pixmap, img)
             datavar = "  .data = " + img["name"] + "_rawdata\n"
-        elif img["type"] == 1:
+        elif img["type"] == 1 or img["type"] == 4:
             write_rledata(data_header, pixmap, img)
             datavar = "  .data = " + img["name"] + "_rledata\n"
-        elif img["type"] == 2:
+        elif img["type"] == 2 or img["type"] == 5:
             if config["byte_order"] == "little":
                 img["fgcolor"] = (
                     img["fgcolor"][-2:][:3]
