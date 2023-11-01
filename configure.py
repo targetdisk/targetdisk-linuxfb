@@ -100,7 +100,13 @@ def main():
 
     data_header = open(file="img_data.h", mode="w")
     data_header.write("#ifndef IMG_DATA_H\n#define IMG_DATA_H\n")
-    data_header.write('#include "trident.h"\n')
+    data_header.write(
+        "#ifdef _UEFI_H_\n"
+        + '#include "gfx.h"\n'
+        + "#else\n"
+        + '#include "trident.h"\n'
+        + "#endif\n"
+    )
     data_header.write("#define BG_R  " + config["bg_color"][0] + "\n")
     data_header.write("#define BG_G  " + config["bg_color"][1] + "\n")
     data_header.write("#define BG_B  " + config["bg_color"][2] + "\n")
