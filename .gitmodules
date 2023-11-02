@@ -1,0 +1,3 @@
+[submodule "td-img"]
+	path = td-img
+	url = https://github.com/targetdisk/td-img
