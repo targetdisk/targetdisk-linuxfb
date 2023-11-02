@@ -16,7 +16,7 @@ $ ./configure.py
 
 Compile your dancing trident:
 ```
-$ make trident
+$ make
 ```
 
 Enjoy:
