@@ -2,10 +2,6 @@
 ![A bouncing trident.](epic_bounce.gif)
 
 ## Building
-Generate your `img_data.h` file from the raw pixmap mentioned in `config.json`:
-```
-$ ./configure.py
-```
 
 > <h3>⚠  Note: </h3>
 >

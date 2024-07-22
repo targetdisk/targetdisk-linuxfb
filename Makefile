@@ -3,8 +3,12 @@ STRIP ?= strip
 
 CFLAGS ?= -Wall
 OPEN ?= xdg-open
+PYTHON ?= python3
 
-trident: trident.c
+imgdata.h: config.json
+	$(PYTHON) configure.py
+
+trident: trident.c imgdata.h
 	$(CC) $(CFLAGS) -m32 -o $@ $<
 
 pub.css:
